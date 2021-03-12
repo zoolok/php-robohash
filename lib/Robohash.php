@@ -42,6 +42,10 @@ class Robohash
         if (isset($options['size'])) {
             $this->setImageSize($options['size']);
         }
+
+        if (!is_dir($this->imageDir)) {
+            $this->setImagesPath('vendor/avram/robohash/images/');
+        }
     }
 
     private function createHashes($text, $length = 11)
