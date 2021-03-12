@@ -1,0 +1,27 @@
+{
+  "name": "avram/robohash",
+  "description": "PHP implementation of Robohash.org image generator",
+  "authors": [
+    {
+      "name": "Nemanja Avramović",
+      "email": "avramyu@gmail.com"
+    },
+    {
+      "name": "hush2",
+      "email": "hushywushy@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "require": {
+    "intervention/image": "^2.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Avram\\Robohash\\": "lib"
+    }
+  },
+  "config": {
+    "disable-tls": false
+  }
+}

@@ -1,271 +1,216 @@
-<?php
+<?php namespace Avram\Robohash;
 
-// (C) 2012 hush2 <hushywushy@gmail.com>
+use Intervention\Image\ImageManager as Image;
 
 class Robohash
 {
-    private $image_dir      =  'images/';
+    private $imageDir = 'images/';
 
-    private static $colors  = array(
+    private static $colors = [
         'blue', 'brown', 'green', 'grey', 'orange', 'pink', 'purple', 'red', 'white', 'yellow',
-    );
-    private static $sets    = array('set1','set2', 'set3');
-    private static $bgsets  = array('bg1', 'bg2');
+    ];
+    private static $sets = ['set1', 'set2', 'set3', 'set4', 'set5'];
+    private static $bgSets = ['bg1', 'bg2'];
 
-    private $set            = '',
-            $bgset          = '',
-            $hash_index     = 4,
-            $hash_list      = array();
+    private $set = '',
+        $bgSet = '',
+        $hashIndex = 4,
+        $hashList = [],
+        $size = 300;
 
-    const IMAGE_WIDTH       = 300,
-          IMAGE_HEIGHT      = 300;
+    const IMAGE_WIDTH = 300,
+        IMAGE_HEIGHT = 300;
 
-    function  __construct($options) {
-
-        $this->create_hashes($options['text']);
-
-        $this->set_color($options['color']) ;
-        $this->set_set($options['set']);
-
-        if ($options['bgset'])
-        {
-            $this->set_bgset($options['bgset']) ;
+    public function __construct($options)
+    {
+        if (isset($options['text'])) {
+            $this->createHashes($options['text']);
         }
 
-        $this->set_size($options['size']) ;
+        if (isset($options['color'])) {
+            $this->setColor($options['color']);
+        }
 
-        $this->filename = $options['filename'];
-        $this->ext      = $options['ext'];
-        $this->cache    = $options['cache'];
+        if (isset($options['set'])) {
+            $this->setImageSet($options['set']);
+        }
+
+        if (isset($options['bgset']) && !is_null($options['bgset'])) {
+            $this->setBackgroundSet($options['bgset']);
+        }
+
+        if (isset($options['size'])) {
+            $this->setImageSize($options['size']);
+        }
     }
 
-    private function create_hashes($text, $length=11)
+    private function createHashes($text, $length = 11)
     {
         $hashes = str_split(hash('sha512', $text), $length);
-        foreach ($hashes as $hash)
-        {
-            $this->hash_list[] = base_convert($hash, 16, 10);
+        foreach ($hashes as $hash) {
+            $this->hashList[] = base_convert($hash, 16, 10);
         }
+
+        return $this;
     }
 
-    function set_color($color)
+    public function setColor($color)
     {
         $this->set = 'set1/';
 
-        if ($color && in_array($color, self::$colors))
-        {
+        if ($color && in_array($color, self::$colors)) {
             $this->set .= $color;
+        } else {
+            $this->set .= self::$colors[bcmod($this->hashList[0], count(self::$colors))];
         }
-        else {
-            $this->set .= self::$colors[bcmod($this->hash_list[0], count(self::$colors))] ;
-        }
+
+        return $this;
     }
 
-    function set_set($set)
+    public function setImageSet($set)
     {
-        if ($set == 'any') 
-        {
-            $set = self::$sets[bcmod($this->hash_list[1], count(self::$sets))] ;
+        if ($set == 'any') {
+            $set = self::$sets[bcmod($this->hashList[1], count(self::$sets))];
         }
-        if ($set == 'set1' || !in_array($set, self::$sets))
-        {
-            return;  // Use set from set_color()
+        if ($set == 'set1' || !in_array($set, self::$sets)) {
+            return $this;  // Use set from set_color()
         }
         $this->set = $set;
+
+        return $this;
     }
 
-    function set_bgset($bgset)
+    public function setBackgroundSet($bgset)
     {
-        if (!in_array($bgset, self::$bgsets))
-        {
-            $bgset = self::$bgsets[bcmod($this->hash_list[2], count(self::$bgsets))];
+        if (!in_array($bgset, self::$bgSets)) {
+            $bgset = self::$bgSets[bcmod($this->hashList[2], count(self::$bgSets))];
         }
-        $bgfiles = glob($this->image_dir . "$bgset/*");
-        $this->bgset = $bgfiles[bcmod($this->hash_list[3], count($bgfiles))];
+        $bgfiles     = glob($this->imageDir."backgrounds/$bgset/*");
+        $this->bgSet = $bgfiles[bcmod($this->hashList[3], count($bgfiles))];
+
+        return $this;
     }
 
-    function get_image_list()
+    protected function getImageList()
     {
         $image_list = array();
-        $dirs = glob($this->image_dir . "{$this->set}/*");
+        $dirs       = glob($this->imageDir."sets/{$this->set}/*");
 
-        foreach ($dirs as $dir)
-        {
-            $files = glob("$dir/*");
-            $img_index = bcmod($this->hash_list[$this->hash_index], count($files));
-            $this->hash_index++;
+        foreach ($dirs as $dir) {
+            $files     = glob("$dir/*");
+            $img_index = bcmod($this->hashList[$this->hashIndex], count($files));
+            $this->hashIndex++;
             $s = explode('#', $files[$img_index], 2);
             krsort($s);
             $temp[] = implode("|", $s);
         }
         sort($temp);
 
-        foreach ($temp as $file)
-        {
-            $s = explode('|',$file, 2);
+        foreach ($temp as $file) {
+            $s = explode('|', $file, 2);
             krsort($s);
             $image_list[] = implode("#", $s);
         }
-        if ($this->bgset)
-        {
-            array_unshift($image_list, $this->bgset);
+        if ($this->bgSet) {
+            array_unshift($image_list, $this->bgSet);
         }
         return $image_list;
     }
 
-    function set_size($size)
+    public function setImagesPath($path)
     {
-        $this->size = $size;
+        $this->imageDir = $path;
+        return $this;
     }
 
-    function get_width_height()
+    public function setImageSize($size)
+    {
+        $this->size = $size;
+        return $this;
+    }
+
+    protected function getImageSize()
     {
         $width  = self::IMAGE_WIDTH;
         $height = self::IMAGE_WIDTH;
 
-        if ($this->size)
-        {
+        if ($this->size) {
             $width_height = explode('x', $this->size);
-
-            $width  = isset($width_height[0]) ? (int) $width_height[0] : self::IMAGE_WIDTH;
-            $height = isset($width_height[1]) ? (int) $width_height[1] : self::IMAGE_HEIGHT;
-
-            if ($width  > 1024 || $width  < 10)
-            {
-                $width  = self::IMAGE_WIDTH;
+            if (count($width_height) == 1) {
+                $width_height = [$this->size, $this->size];
             }
-            if ($height > 1024 || $height < 10)
-            {
+
+            $width  = isset($width_height[0]) ? (int)$width_height[0] : self::IMAGE_WIDTH;
+            $height = isset($width_height[1]) ? (int)$width_height[1] : self::IMAGE_HEIGHT;
+
+            if ($width > 1024 || $width < 10) {
+                $width = self::IMAGE_WIDTH;
+            }
+            if ($height > 1024 || $height < 10) {
                 $height = self::IMAGE_HEIGHT;
             }
         }
         return array($width, $height);
     }
 
-    // Use ImageMagick for processing images.
-    function generate_image_imagick($image_list)
+    protected function generateWithIntervention($imageList)
     {
-        $body = array_shift($image_list);
-        $body = new Imagick($body);
+        $first = array_shift($imageList);
+        $body  = (new Image)->make($first);
 
-        $body->resizeImage(self::IMAGE_WIDTH, self::IMAGE_HEIGHT, Imagick::FILTER_LANCZOS, 1);
+        $body->resize(self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
 
-        foreach ($image_list as $image_file)
-        {
-            $image = new Imagick($image_file);
-            // Since some of the images varies in width/height (Set3 in particular),
-            // they need to be resized first so that they are centered properly.
-            $image->resizeImage(self::IMAGE_WIDTH, self::IMAGE_HEIGHT, Imagick::FILTER_LANCZOS, 1);
-            $body->compositeImage($image, $image->getImageCompose(), 0, 0);
-            $image->clear();
+        foreach ($imageList as $image_file) {
+            $image = (new Image)->make($image_file);
+            $image->resize(self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
+            $body->insert($image, 'center');
+            $image->destroy();
         }
 
-        list($width, $height) = $this->get_width_height();
+        list($width, $height) = $this->getImageSize();
 
-        if ($width != self::IMAGE_WIDTH && $height != self::IMAGE_HEIGHT)
-        {
-            $body->resizeImage($width, $height, Imagick::FILTER_LANCZOS, 1);
+        if ($width != self::IMAGE_WIDTH && $height != self::IMAGE_HEIGHT) {
+            $body->resize($width, $height);
         }
-
-        $body->setImageFormat($this->ext);
-
-        // cache it
-        if ($this->cache)
-        {
-            file_put_contents($this->filename, $body);
-        }
-        return $body;
-
-    }
-
-    // Use GD as a fallback if host does not support ImageMagick.
-    function generate_image_gd($image_list)
-    {
-        // functions with alpha channel support
-        require 'imagecopymerge_alpha.php';
-        require 'image_resize.php';
-
-        $body = array_shift($image_list);
-
-        $body = imagecreatefrompng($body);
-        $body = image_resize($body, self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
-
-        foreach ($image_list as $image_file) {
-            $image = imagecreatefrompng($image_file);
-            $image = image_resize($image, self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
-            imagecopymerge_alpha($body, $image, 0, 0, 0, 0, imagesx($image), imagesy($image), 100);
-            imagedestroy($image);
-        }
-
-        list($width, $height) = $this->get_width_height();
-
-        $body = image_resize($body, $width, $height);
-
-        imagesavealpha($body, true);
 
         return $body;
     }
 
-    public function generate_image()
+    public function generateImage()
     {
-        $image_list = $this->get_image_list();
-
-        if (extension_loaded('imagick'))
-        {
-            return $this->generate_image_imagick($image_list);
-        }
-        if (extension_loaded('gd'))
-        {
-            $image = $this->generate_image_gd($image_list);
-
-            // Buffer image so we can cache it.
-            ob_start();
-
-            switch ($this->ext) {
-                case 'jpg':
-                    imagejpeg($image);
-                    break;
-
-                case 'gif':
-                    imagegif($image);
-                    break;
-
-                case 'bmp':
-                    imagewbmp($image);
-                    break;
-
-                default:
-                    imagepng($image);
-                    break;
-            }
-
-            $body = ob_get_clean();
-            if ($this->cache) {
-                file_put_contents($this->filename, $body);
-            }
-            return $body;
-        }
+        return $this->generateWithIntervention($this->getImageList());
     }
 
-    static function rand_text($length = 8)
+    public static function randomText($length = 8)
     {
         $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         return substr(str_shuffle($chars), 0, $length);
     }
 
-    static function rand_set()
+    public static function randomSet()
     {
         return self::$sets[array_rand(self::$sets)];
     }
 
-    static function rand_color()
+    public static function randomColor()
     {
         return self::$colors[array_rand(self::$colors)];
     }
 
-    static function rand_bgset()
+    public static function randomBgSet()
     {
-        return self::$bgsets[array_rand(self::$bgsets)];
+        return self::$bgSets[array_rand(self::$bgSets)];
+    }
+
+    public static function make($text, $size = 300, $set = 'set1', $color = 'blue', $bgset = null)
+    {
+        return (new static([
+            'text'  => $text,
+            'size'  => $size,
+            'set'   => $set,
+            'color' => $color,
+            'bgset' => $bgset,
+        ]))->generateImage();
     }
 
 }
