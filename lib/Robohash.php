@@ -27,7 +27,7 @@ class Robohash
             $this->createHashes($options['text']);
         }
 
-        if (isset($options['color'])) {
+        if (isset($options['color']) && !is_null($options['color'])) {
             $this->setColor($options['color']);
         }
 
