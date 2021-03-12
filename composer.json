@@ -20,8 +20,5 @@
     "psr-4": {
       "Avram\\Robohash\\": "lib"
     }
-  },
-  "config": {
-    "disable-tls": false
   }
 }
