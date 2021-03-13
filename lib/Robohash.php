@@ -4,7 +4,7 @@ use Intervention\Image\ImageManager as Image;
 
 class Robohash
 {
-    private $imageDir = 'images/';
+    private $imageDir = 'vendor/avram/robohash/images/';
 
     private static $colors = [
         'blue', 'brown', 'green', 'grey', 'orange', 'pink', 'purple', 'red', 'white', 'yellow',
@@ -44,7 +44,7 @@ class Robohash
         }
 
         if (!is_dir($this->imageDir)) {
-            $this->setImagesPath('vendor/avram/robohash/images/');
+            $this->setImagesPath('images/');
         }
     }
 
@@ -162,19 +162,15 @@ class Robohash
         $first = array_shift($imageList);
         $body  = (new Image)->make($first);
 
-        $body->resize(self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
+        list($width, $height) = $this->getImageSize();
+
+        $body->resize($width, $height);
 
         foreach ($imageList as $image_file) {
             $image = (new Image)->make($image_file);
-            $image->resize(self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
+            $image->resize($width, $height);
             $body->insert($image, 'center');
             $image->destroy();
-        }
-
-        list($width, $height) = $this->getImageSize();
-
-        if ($width != self::IMAGE_WIDTH && $height != self::IMAGE_HEIGHT) {
-            $body->resize($width, $height);
         }
 
         return $body;
