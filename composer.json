@@ -14,6 +14,7 @@
   "license": "MIT",
   "minimum-stability": "dev",
   "require": {
+    "ext-bcmath": "*",
     "intervention/image": "^2.5"
   },
   "autoload": {
