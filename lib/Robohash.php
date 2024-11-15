@@ -4,7 +4,7 @@ use Intervention\Image\ImageManager as Image;
 
 class Robohash
 {
-    private $imageDir = 'vendor/avram/robohash/images/';
+    private $imageDir = '../vendor/avram/robohash/images/';
 
     private static $colors = [
         'blue', 'brown', 'green', 'grey', 'orange', 'pink', 'purple', 'red', 'white', 'yellow',
