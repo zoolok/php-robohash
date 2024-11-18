@@ -1,25 +1,22 @@
 {
-  "name": "avram/robohash",
+  "name": "zoolok/robohash",
   "description": "PHP implementation of Robohash.org image generator",
   "authors": [
     {
-      "name": "Nemanja Avramović",
-      "email": "avramyu@gmail.com"
-    },
-    {
-      "name": "hush2",
-      "email": "hushywushy@gmail.com"
+      "name": "Dmitry Sazonov",
+      "email": "mityasazonow@yandex.ru"
     }
   ],
   "license": "MIT",
   "minimum-stability": "dev",
   "require": {
     "ext-bcmath": "*",
+    "symfony/var-dumper": "v5.4.35",
     "intervention/image": "^2.5"
   },
   "autoload": {
     "psr-4": {
-      "Avram\\Robohash\\": "lib"
+      "Zoolok\\Robohash\\": "lib"
     }
   }
 }

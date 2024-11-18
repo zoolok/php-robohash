@@ -1,0 +1,40 @@
+version: "3.1"
+services:
+
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    working_dir: /application
+    volumes:
+      - ./:/application
+      - ./docker/nginx:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+    networks:
+      sail:
+        ipv4_address: 172.28.1.1
+  php-fpm:
+    build: docker/php-fpm
+    container_name: php-fpm
+    working_dir: /application
+    volumes:
+      - ./:/application
+      - ./docker/php-fpm/php-ini-overrides.ini:/usr/local/etc/php/php.ini
+    environment:
+      XDEBUG_CONFIG: "client_host=host.docker.internal client_port=9000 remote_port=9003 remote_enable=1 remote_autostart=1 idekey=PHPSTORM remote_connect_back=0 start_with_request=yes discover_client_host=1"
+      PHP_IDE_CONFIG: serverName=Docker
+      XDEBUG_SESSION: PHPSTORM
+      XDEBUG_MODE: "develop,debug,trace"
+    networks:
+      sail:
+        ipv4_address: 172.28.1.2
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+networks:
+  sail:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+

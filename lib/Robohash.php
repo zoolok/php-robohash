@@ -1,33 +1,51 @@
-<?php namespace Avram\Robohash;
+<?php
+
+namespace Zoolok\Robohash;
 
 use Intervention\Image\ImageManager as Image;
 
 class Robohash
 {
-    private $imageDir = '../vendor/avram/robohash/images/';
-
-    private static $colors = [
-        'blue', 'brown', 'green', 'grey', 'orange', 'pink', 'purple', 'red', 'white', 'yellow',
+    private const    IMAGE_WIDTH  = 300;
+    private const    IMAGE_HEIGHT = 300;
+    private string $imageDir = '../vendor/zoolok/robohash/images/';
+    private static array $colors = [
+        'blue',
+        'brown',
+        'green',
+        'grey',
+        'orange',
+        'pink',
+        'purple',
+        'red',
+        'white',
+        'yellow',
     ];
-    private static $sets = ['set1', 'set2', 'set3', 'set4', 'set5'];
-    private static $bgSets = ['bg1', 'bg2'];
+    private static array $sets = [
+        'set1',
+        'set2',
+        'set3',
+        'set4',
+        'set5'
+    ];
+    private static array $bgSets = [
+        'bg1',
+        'bg2'
+    ];
+    private string $set       = '';
+    private string $bgSet     = '';
+    private int    $hashIndex = 4;
+    private array  $hashList  = [];
+    private int    $size      = 300;
 
-    private $set = '',
-        $bgSet = '',
-        $hashIndex = 4,
-        $hashList = [],
-        $size = 300;
 
-    const IMAGE_WIDTH = 300,
-        IMAGE_HEIGHT = 300;
-
-    public function __construct($options)
+    public function __construct(array $options)
     {
         if (isset($options['text'])) {
             $this->createHashes($options['text']);
         }
 
-        if (isset($options['color']) && !is_null($options['color'])) {
+        if (! empty($options['color'])) {
             $this->setColor($options['color']);
         }
 
@@ -35,7 +53,7 @@ class Robohash
             $this->setImageSet($options['set']);
         }
 
-        if (isset($options['bgset']) && !is_null($options['bgset'])) {
+        if (isset($options['bgset'])) {
             $this->setBackgroundSet($options['bgset']);
         }
 
@@ -48,40 +66,55 @@ class Robohash
         }
     }
 
-    private function createHashes($text, $length = 11)
+    /**
+     * @param string $text
+     *
+     * @return void
+     */
+    private function createHashes(string $text): void
     {
-        $hashes = str_split(hash('sha512', $text), $length);
+        $hashes = str_split(hash('sha512', $text), 11);
+
         foreach ($hashes as $hash) {
             $this->hashList[] = base_convert($hash, 16, 10);
         }
-
-        return $this;
+      //  dd($this->hashList);
     }
 
-    public function setColor($color)
+    /**
+     * Set avatar color
+     *
+     * @param string|null $color
+     *
+     * @return void
+     */
+    public function setColor(?string $color): void
     {
         $this->set = 'set1/';
 
-        if ($color && in_array($color, self::$colors)) {
-            $this->set .= $color;
-        } else {
-            $this->set .= self::$colors[bcmod($this->hashList[0], count(self::$colors))];
-        }
-
-        return $this;
+        $this->set .= $color && in_array($color, static::$colors)
+                ? $color
+                : self::$colors[bcmod($this->hashList[0], count(static::$colors))];
     }
 
-    public function setImageSet($set)
+    /**
+     * Set avatar set
+     *
+     * @param string $set
+     *
+     * @return void
+     */
+    public function setImageSet(string $set): void
     {
+        if ($set == 'set1' || !in_array($set, self::$sets)) {
+            return;
+        }
+
         if ($set == 'any') {
             $set = self::$sets[bcmod($this->hashList[1], count(self::$sets))];
         }
-        if ($set == 'set1' || !in_array($set, self::$sets)) {
-            return $this;  // Use set from set_color()
-        }
-        $this->set = $set;
 
-        return $this;
+        $this->set = $set;
     }
 
     public function setBackgroundSet($bgset)
@@ -162,7 +195,7 @@ class Robohash
         $first = array_shift($imageList);
         $body  = (new Image)->make($first);
 
-        list($width, $height) = $this->getImageSize();
+        [$width, $height] = $this->getImageSize();
 
         $body->resize($width, $height);
 

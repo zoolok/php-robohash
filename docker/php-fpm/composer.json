@@ -1,0 +1,21 @@
+{
+  "name": "zoolok/robohash",
+  "description": "PHP implementation of Robohash.org image generator",
+  "authors": [
+    {
+      "name": "Dmitry Sazonov",
+      "email": "mityasazonow@yandex.ru"
+    },
+  ],
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "require": {
+    "ext-bcmath": "*",
+    "intervention/image": "^2.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Zoolok\\Robohash\\": "lib"
+    }
+  }
+}
